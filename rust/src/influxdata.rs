@@ -76,8 +76,6 @@ impl InfluxDatabase {
   pub fn send_records(&self, records: &Vec<InfluxDataRecord>) -> HttpResult<Response> {
     let data: String = json::encode(records);
     let www_form_type: Mime = from_str("application/x-www-form-urlencoded").unwrap();
-    println!("XXX: sending to URL {}", self.get_post_url());
-    println!("XXX:    with data {}", data);
     Request::post(self.get_post_url())
            .and_then(|req| {
              let mut mut_req = req;
