@@ -1,0 +1,64 @@
+[root]
+name = "carbon-influxdb"
+version = "0.0.1"
+dependencies = [
+ "hyper 0.0.1 (git+https://github.com/hyperium/hyper.git)",
+]
+
+[[package]]
+name = "encoding"
+version = "0.1.0"
+source = "git+https://github.com/lifthrasiir/rust-encoding#a739425a3f3174a31fe38c158dcaf22ea1d856f4"
+
+[[package]]
+name = "hyper"
+version = "0.0.1"
+source = "git+https://github.com/hyperium/hyper.git#7478f3dfd6d449c40759ec1320762a8160c28c0a"
+dependencies = [
+ "intertwine 0.0.1 (git+https://github.com/reem/rust-intertwine)",
+ "mime 0.0.1 (git+https://github.com/hyperium/mime.rs)",
+ "move-acceptor 0.0.1 (git+https://github.com/reem/rust-move-acceptor)",
+ "openssl 0.0.0 (git+https://github.com/sfackler/rust-openssl)",
+ "typeable 0.0.1 (git+https://github.com/reem/rust-typeable)",
+ "unsafe-any 0.1.0 (git+https://github.com/reem/rust-unsafe-any)",
+ "url 0.1.0 (git+https://github.com/servo/rust-url)",
+]
+
+[[package]]
+name = "intertwine"
+version = "0.0.1"
+source = "git+https://github.com/reem/rust-intertwine#3b23760cf7da3c7f38db16bf488c88f6e506de2d"
+
+[[package]]
+name = "mime"
+version = "0.0.1"
+source = "git+https://github.com/hyperium/mime.rs#e2a6bcf5029a33f12a77387da9000e6106c0d2fe"
+
+[[package]]
+name = "move-acceptor"
+version = "0.0.1"
+source = "git+https://github.com/reem/rust-move-acceptor#4eef9c13745db3da74c22a26b659dc054aec5500"
+
+[[package]]
+name = "openssl"
+version = "0.0.0"
+source = "git+https://github.com/sfackler/rust-openssl#1e706b8ef4d4344b5297b90bcd430cc96f40fb39"
+
+[[package]]
+name = "typeable"
+version = "0.0.1"
+source = "git+https://github.com/reem/rust-typeable#55154e1809db8ceec8f8519bdbb638c2fbd712f5"
+
+[[package]]
+name = "unsafe-any"
+version = "0.1.0"
+source = "git+https://github.com/reem/rust-unsafe-any#75cff194795447a901c1658e31629899c9c8d52f"
+
+[[package]]
+name = "url"
+version = "0.1.0"
+source = "git+https://github.com/servo/rust-url#9142b86a812ac5bc886f76235585557d8e002246"
+dependencies = [
+ "encoding 0.1.0 (git+https://github.com/lifthrasiir/rust-encoding)",
+]
+

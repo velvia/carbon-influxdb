@@ -1,0 +1,13 @@
+[package]
+
+name = "carbon-influxdb"
+version = "0.0.1"
+authors = [ "Evan Chan <velvia@gmail.com>" ]
+
+[dependencies.hyper]
+
+git = "https://github.com/hyperium/hyper.git"
+
+[[bin]]
+
+name = "carbon-influxdb"
