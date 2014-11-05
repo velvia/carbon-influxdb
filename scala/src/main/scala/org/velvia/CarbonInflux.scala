@@ -59,13 +59,12 @@ object CarbonInflux extends App with Logging {
     for { line <- getCarbonStream(server) } {
       reportingActor ! CarbonLine(line)
     }
-    logger.info("---- end connection ---")
   }
 
   // Blocks while waiting for the next connection
   private def getCarbonStream(server: ServerSocket): Iterator[String] = {
     val socket = server.accept()
-    logger.info("Connection from {}", socket.getInetAddress())
+    logger.debug("Connection from {}", socket.getInetAddress())
     Source.fromInputStream(socket.getInputStream, "UTF8").getLines
   }
 }

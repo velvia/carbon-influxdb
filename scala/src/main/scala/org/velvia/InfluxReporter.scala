@@ -59,7 +59,7 @@ class InfluxReporter(config: Config) extends Logging {
       val pointsArray = points.map { p => Array[Any](p.timestamp, p.value) }.toArray
       Series(metric, Columns, pointsArray)
     }.toArray
-    logger.info("Writing {} series to Influx...", series.size.toString)
+    logger.debug("Writing {} series to Influx...", series.size.toString)
     val response = client.writeSeries(series.toArray)
     response.foreach { errString => logger.error(" Error from Influx: {}", errString) }
 
