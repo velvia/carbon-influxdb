@@ -30,6 +30,8 @@ NOTE: I copied the code from the influxdb-scala client to this project, and that
 
 At this point you can start carbon-influxdb and replace the graphite carbon-cache daemon, or you can use the supplied `carbon-tee.sh` to tee port 2003 traffic to both carbon-influxdb as well as the old carbon-cache daemon.
 
+Note that default configuration already does log file rotation!  You can supply your own logback.xml or change JVM parameters by setting `JVM_OPTS` before calling `carbon-influxdb`.
+
 ## Notes on gradual Graphite to InfluxDB transition
 
 
