@@ -24,8 +24,9 @@ object CarbonInfluxBuild extends Build {
         "com.typesafe" %% "scalalogging-slf4j" % "1.1.0",
         "com.typesafe.akka" %% "akka-actor" % "2.3.6",
         "org.json4s" %% "json4s-jackson" % "3.2.6",
-        "com.ning" % "async-http-client" % "1.0.0",
+        "com.ning" % "async-http-client" % "1.0.0" exclude("log4j", "log4j"),
         "ch.qos.logback" % "logback-classic" % "1.1.2",
+        "org.slf4j"      % "log4j-over-slf4j" % "1.7.7",
 
         "org.scalatest" %% "scalatest" % "2.1.0" % "test"
       ),

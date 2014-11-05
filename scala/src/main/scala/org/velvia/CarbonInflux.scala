@@ -9,8 +9,9 @@ import java.net.ServerSocket
 import scala.concurrent.duration._
 import scala.io.Source
 
-case class CarbonLine(line: String)
+case class CarbonLine(line: String, hostName: String)
 case object FlushToInflux
+case object LogMetrics
 
 object ReportingActor {
   def props(config: Config): Props = Props(new ReportingActor(config))
@@ -20,8 +21,9 @@ class ReportingActor(config: Config) extends Actor
 with RequiresMessageQueue[BoundedMessageQueueSemantics] {
   val reporter = new InfluxReporter(config)
   def receive = {
-    case CarbonLine(line) => reporter.addPointFromCarbonLine(line)
-    case FlushToInflux    => reporter.flushToInflux()
+    case CarbonLine(line, host) => reporter.addPointFromCarbonLine(line, host)
+    case FlushToInflux          => reporter.flushToInflux()
+    case LogMetrics             => reporter.logMetrics()
   }
 }
 
@@ -54,17 +56,18 @@ object CarbonInflux extends App with Logging {
   val flushIntervalMs = config.getMilliseconds("influx-send-interval").toInt
   system.scheduler.schedule(flushIntervalMs milliseconds, flushIntervalMs milliseconds,
                             reportingActor, FlushToInflux)
+  system.scheduler.schedule(30 seconds, 30 seconds, reportingActor, LogMetrics)
 
   while (true) {
-    for { line <- getCarbonStream(server) } {
-      reportingActor ! CarbonLine(line)
-    }
+    val (lines, host) = getCarbonStream(server)
+    lines.foreach { line => reportingActor ! CarbonLine(line, host) }
   }
 
   // Blocks while waiting for the next connection
-  private def getCarbonStream(server: ServerSocket): Iterator[String] = {
+  private def getCarbonStream(server: ServerSocket): (Iterator[String], String) = {
     val socket = server.accept()
-    logger.debug("Connection from {}", socket.getInetAddress())
-    Source.fromInputStream(socket.getInputStream, "UTF8").getLines
+    val fromAddr = socket.getInetAddress()
+    logger.debug("Connection from {}", fromAddr)
+    (Source.fromInputStream(socket.getInputStream, "UTF8").getLines, fromAddr.getHostName())
   }
 }
