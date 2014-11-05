@@ -60,7 +60,8 @@ class InfluxReporter(config: Config) extends Logging {
       Series(metric, Columns, pointsArray)
     }.toArray
     logger.info("Writing {} series to Influx...", series.size.toString)
-    client.writeSeries(series.toArray)
+    val response = client.writeSeries(series.toArray)
+    response.foreach { errString => logger.error(" Error from Influx: {}", errString) }
 
     logger.info("Flushing pointsMap...")
     pointsMap.clear()

@@ -227,7 +227,7 @@ package object response {
   case class ClusterAdmin(username: String)
   case class ContinuousQuery(id: Int, query: String)
   case class Response(json: String) {
-    
+
     def toSeries: Array[Series] = {
       val all = JSON.parseFull(json).get.asInstanceOf[List[Any]]
       val series = new Array[Series](all.length)
@@ -257,19 +257,19 @@ package object response {
 
         var ii = 0
         val mm = scala.collection.mutable.Map[String, Array[Any]]()
-        val cc = new Array[String](columns.size)      
+        val cc = new Array[String](columns.size)
         columns.foreach { cl => cc(ii) = cl; mm(cl) = Array[Any](); ii += 1 }
 
-        m.get("points").get.asInstanceOf[List[List[Any]]].foreach { pt => 
-          ii = 0        
+        m.get("points").get.asInstanceOf[List[List[Any]]].foreach { pt =>
+          ii = 0
           pt.foreach { v => mm += cc(ii) -> (mm(cc(ii)) :+ v); ii += 1; }
         }
         series(i) = SeriesMap(name, mm.toMap)
         i += 1
       }
-      series    
+      series
     }
-  }  
+  }
 }
 
 package object error {
