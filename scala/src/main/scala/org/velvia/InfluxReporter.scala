@@ -59,11 +59,19 @@ class InfluxReporter(config: Config) extends Logging {
       val pointsArray = points.map { p => Array[Any](p.timestamp, p.value) }.toArray
       Series(metric, Columns, pointsArray)
     }.toArray
-    logger.debug("Writing {} series to Influx...", series.size.toString)
-    val response = client.writeSeries(series.toArray)
-    response.foreach { errString => logger.error(" Error from Influx: {}", errString) }
+    retryInfluxPost(series)
 
-    logger.info("Flushing pointsMap...")
     pointsMap.clear()
+  }
+
+  private def retryInfluxPost(series: Array[Series], times: Int = 3) {
+    logger.debug("Writing {} series to Influx...", series.size.toString)
+    (1 to times).foreach { nTry =>
+      client.writeSeries(series.toArray) match {
+        case None            => return
+        case Some(errString) => logger.warn(" Try {}: Error from Influx: {}", nTry.toString, errString)
+      }
+    }
+    logger.error("Giving up, metrics will be lost.")
   }
 }
