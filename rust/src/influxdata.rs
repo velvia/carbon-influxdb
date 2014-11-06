@@ -39,7 +39,7 @@ impl GraphitePoint {
 #[deriving(Encodable)]
 #[deriving(Show)]
 pub struct InfluxDataRecord {
-  pub series_name: String,
+  pub name: String,
   // Not sure this is the right choice here, but to replicate a heap allocated String for
   // every data record seems dumb.  Advice recommended.
   pub columns: Vec<&'static str>,
@@ -51,7 +51,7 @@ impl InfluxDataRecord {
   //
   // Columns: time and value
   pub fn new_graphite(name: String) -> InfluxDataRecord {
-    InfluxDataRecord { series_name: name,
+    InfluxDataRecord { name: name,
                        columns: vec!["time", "value"],
                        points: Vec::new() }
   }
