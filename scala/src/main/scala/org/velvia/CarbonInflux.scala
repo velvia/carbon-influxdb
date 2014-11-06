@@ -59,15 +59,20 @@ object CarbonInflux extends App with Logging {
   system.scheduler.schedule(30 seconds, 30 seconds, reportingActor, LogMetrics)
 
   while (true) {
-    val (lines, host) = getCarbonStream(server)
-    lines.foreach { line => reportingActor ! CarbonLine(line, host) }
+    withCarbonStream(server) { (lines, host) =>
+      lines.foreach { line => reportingActor ! CarbonLine(line, host) }
+    }
   }
 
   // Blocks while waiting for the next connection
-  private def getCarbonStream(server: ServerSocket): (Iterator[String], String) = {
+  private def withCarbonStream(server: ServerSocket)(f: (Iterator[String], String) => Unit) {
     val socket = server.accept()
     val fromAddr = socket.getInetAddress()
     logger.debug("Connection from {}", fromAddr)
-    (Source.fromInputStream(socket.getInputStream, "UTF8").getLines, fromAddr.getHostName())
+    try {
+      f(Source.fromInputStream(socket.getInputStream, "UTF8").getLines, fromAddr.getHostName())
+    } finally {
+      socket.close()
+    }
   }
 }
