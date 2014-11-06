@@ -2,8 +2,12 @@ package org.velvia
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.slf4j.Logging
-import org.influxdb.{Client, Series}
+import com.rojoma.json.v3.ast.JValue
+import com.rojoma.json.v3.codec.JsonEncode
+import com.rojoma.json.v3.interpolation._
+import com.rojoma.json.v3.io.CompactJsonWriter
 import scala.collection.mutable
+import scalaj.http.Http
 
 // timestamp Epoch in milliseconds
 case class DataPoint(timestamp: Long, value: Double, host: String)
@@ -14,7 +18,11 @@ case class Stats(var metrics: Int, var points: Int, var posts: Int, var tries: I
 
 object InfluxReporter {
   // Must align perfectly with DataPoint names
-  val Columns = Array("time", "value", "hostname")
+  val Columns = Seq("time", "value", "hostname")
+
+  implicit object DataPointEncoder extends JsonEncode[DataPoint] {
+    def encode(p: DataPoint) = j"""[${p.timestamp}, ${p.value}, ${p.host}]"""
+  }
 }
 
 /**
@@ -34,11 +42,10 @@ class InfluxReporter(config: Config) extends Logging {
   import InfluxReporter._
 
   val hostPort = config.getString("influx.host") + ":" + config.getInt("influx.port")
-  val client = new Client(host = hostPort,
-                          database = config.getString("influx.database"),
-                          username = config.getString("influx.username"),
-                          password = config.getString("influx.password"))
-  logger.info("Created client for InfluxDB {} / {}", hostPort, client.database)
+  val database = config.getString("influx.database")
+  val username = config.getString("influx.username")
+  val password = config.getString("influx.password")
+  logger.info("Created reporter for InfluxDB {} / {}", hostPort, database)
 
   val pointsMap = mutable.HashMap[String, Seq[DataPoint]]()
   val stats = Stats(0, 0, 0, 0)
@@ -63,11 +70,10 @@ class InfluxReporter(config: Config) extends Logging {
 
   def flushToInflux() {
     val series = pointsMap.map { case (metric, points) =>
-      val pointsArray = points.map { p => Array[Any](p.timestamp, p.value, p.host) }.toArray
-      Series(metric, Columns, pointsArray)
-    }.toArray
+      j"""{"name": $metric, "columns": $Columns, "points": $points}"""
+    }
     stats.metrics += series.size
-    retryInfluxPost(series)
+    retryInfluxPost(series.toSeq)
 
     pointsMap.clear()
   }
@@ -77,16 +83,30 @@ class InfluxReporter(config: Config) extends Logging {
     stats.reset()
   }
 
-  private def retryInfluxPost(series: Array[Series], times: Int = 3) {
+  private def retryInfluxPost(series: Seq[JValue], times: Int = 3) {
     logger.debug("Writing {} series to Influx...", series.size.toString)
     stats.posts += 1
     (1 to times).foreach { nTry =>
       stats.tries += 1
-      client.writeSeries(series.toArray) match {
+      writeSeries(series) match {
         case None            => return
         case Some(errString) => logger.warn(" Try {}: Error from Influx: {}", nTry.toString, errString)
       }
     }
     logger.error("Giving up, metrics will be lost.")
+  }
+
+  private def writeSeries(series: Seq[JValue]): Option[String] = {
+    val data = CompactJsonWriter.toString(j"$series")
+    try {
+      val (status, _, body) = Http.postData(s"http://$hostPort/db/$database/series", data).
+                                header("content-type", "application/json").
+                                auth(username, password).
+                                asHeadersAndParse(Http.readString)
+      if (status >= 200 && status < 300) return None
+      Some(body)
+    } catch {
+      case e: Exception => Some(s"${e.getClass.getName}: ${e.getMessage}")
+    }
   }
 }

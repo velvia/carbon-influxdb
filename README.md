@@ -20,8 +20,6 @@ what I started out with, but it doesn't work at the moment because apparently
 there are no good Rust HTTP libraries that really support simple POSTs without
 chunked encoding.  I'm hoping this will change quickly.
 
-NOTE: I copied the code from the influxdb-scala client to this project, and that portion of the code is Copyright by InfluxDB.  This will be removed once those guys publish jars for their project, or will be replaced by a simpler client as our needs are really simple.
-
 ## Deployment
 
 1. cd into scala subdir, then run `sbt assembly`
