@@ -14,16 +14,19 @@ mod influxdata;
 
 // Convert each stream of Carbon lines to Influx data records, and post them
 fn handle_connection(stream: TcpStream, db: &InfluxDatabase) {
-  let mut file = BufferedReader::new(stream);
+  let mut mut_stream = stream;
+  let source_host = mut_stream.peer_name().map(|addr| { format!("{}", addr.ip) })
+                                          .unwrap_or("".to_string());
+  let mut file = BufferedReader::new(mut_stream);
   // This is not efficient.  We should really collect all the records which
   // belong to a metric together, though one Graphite stream is typically from
   // one host and will not send metrics multiple times.
   let records: Vec<InfluxDataRecord> =
     file.lines().filter_map(|line| {
-      GraphitePoint::from_carbon_line(line.unwrap().as_slice())
+      GraphitePoint::from_carbon_line(line.unwrap().as_slice(), source_host.as_slice())
     }).map(|point| {
-      let mut record = InfluxDataRecord::new_graphite(point.metric_name);
-      record.push_graphite_point(point.timestamp, point.metric_value);
+      let mut record = InfluxDataRecord::new_graphite(point.metric_name.clone());
+      record.push_graphite_point(&point);
       record
     }).collect();
 

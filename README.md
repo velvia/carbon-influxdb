@@ -15,10 +15,11 @@ I started writing this due to some of the reasons above, but honestly just wante
 
 ## Rust or Scala?
 
-The Scala implementation is complete and production ready.  The Rust one was
-what I started out with, but it doesn't work at the moment because apparently
-there are no good Rust HTTP libraries that really support simple POSTs without
-chunked encoding.  I'm hoping this will change quickly.
+The Scala implementation is complete and production ready.  It includes:
+* retries
+* basic auth, so your password isn't sent in plaintext
+
+The Rust one was what I started out with, and it technically works, but is missing retries, and settable username/password.
 
 ## Deployment
 

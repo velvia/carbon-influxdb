@@ -12,7 +12,8 @@ use hyper::mime::Mime;
 pub struct GraphitePoint {
   pub metric_name: String,
   pub metric_value: f32,
-  pub timestamp: u64       // Unix Epoch - seconds since 1/1/1970
+  pub timestamp: u64,       // Unix Epoch - seconds since 1/1/1970
+  pub host: String
 }
 
 impl GraphitePoint {
@@ -20,7 +21,7 @@ impl GraphitePoint {
   // Parses a line of Graphite carbon input into a GraphitePoint.  The line has the format:
   // <metricname> <metricvalue> <timestamp-epoch>
   //
-  pub fn from_carbon_line(line: &str) -> Option<GraphitePoint> {
+  pub fn from_carbon_line(line: &str, host: &str) -> Option<GraphitePoint> {
     let re = regex!(r"[ \t]+");
     let fields: Vec<&str> = re.split(line.trim()).collect();
     if fields.len() != 3 { return None; }
@@ -29,7 +30,8 @@ impl GraphitePoint {
       (Some(val), Some(time)) => Some(GraphitePoint {
                                    metric_name: fields[0].to_string(),
                                    metric_value: val,
-                                   timestamp: time
+                                   timestamp: time,
+                                   host: host.to_string()
                                  }),
       _                       => None
     }
@@ -52,13 +54,14 @@ impl InfluxDataRecord {
   // Columns: time and value
   pub fn new_graphite(name: String) -> InfluxDataRecord {
     InfluxDataRecord { name: name,
-                       columns: vec!["time", "value"],
+                       columns: vec!["time", "value", "hostname"],
                        points: Vec::new() }
   }
 
   // Add a single graphite point to the record
-  pub fn push_graphite_point(&mut self, timestamp: u64, value: f32) {
-    self.points.push(json::List(vec![json::U64(timestamp), json::F64(value as f64)]))
+  pub fn push_graphite_point(&mut self, p: &GraphitePoint) {
+    self.points.push(json::List(
+      vec![json::U64(p.timestamp), json::F64(p.metric_value as f64), json::String(p.host.clone())]))
   }
 }
 
@@ -91,7 +94,7 @@ impl InfluxDatabase {
   }
 
   fn get_post_url(&self) -> Url {
-    let url_str = format!("http://{}:{}/db/{}/series?u={}&p={}",
+    let url_str = format!("http://{}:{}/db/{}/series?u={}&p={}&time_precision=s",
                           self.host, self.port, self.database, self.username, self.password);
     Url::parse(url_str.as_slice()).unwrap()
   }
