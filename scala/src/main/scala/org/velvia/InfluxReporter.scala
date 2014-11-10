@@ -7,7 +7,7 @@ import com.rojoma.json.v3.codec.JsonEncode
 import com.rojoma.json.v3.interpolation._
 import com.rojoma.json.v3.io.CompactJsonWriter
 import scala.collection.mutable
-import scalaj.http.Http
+import scalaj.http.{Http, HttpOptions}
 
 // timestamp Epoch in milliseconds
 case class DataPoint(timestamp: Long, value: Double, host: String)
@@ -36,6 +36,8 @@ object InfluxReporter {
  *     username = ###
  *     password = ###
  *   }
+ *   connect-timeout = 500ms
+ *   read-timeout = 3000ms
  * }}}
  */
 class InfluxReporter(config: Config) extends Logging {
@@ -45,6 +47,8 @@ class InfluxReporter(config: Config) extends Logging {
   val database = config.getString("influx.database")
   val username = config.getString("influx.username")
   val password = config.getString("influx.password")
+  val connectTimeoutMs = config.getMilliseconds("connect-timeout").toInt
+  val readTimeoutMs = config.getMilliseconds("read-timeout").toInt
   logger.info("Created reporter for InfluxDB {} / {}", hostPort, database)
 
   val pointsMap = mutable.HashMap[String, Seq[DataPoint]]()
@@ -101,6 +105,8 @@ class InfluxReporter(config: Config) extends Logging {
     try {
       val (status, _, body) = Http.postData(s"http://$hostPort/db/$database/series", data).
                                 header("content-type", "application/json").
+                                option(HttpOptions.connTimeout(connectTimeoutMs)).
+                                option(HttpOptions.readTimeout(readTimeoutMs)).
                                 auth(username, password).
                                 asHeadersAndParse(Http.readString)
       if (status >= 200 && status < 300) return None
