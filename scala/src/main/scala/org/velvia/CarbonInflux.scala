@@ -1,6 +1,6 @@
 package org.velvia
 
-import akka.actor.{Actor, ActorSystem, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.dispatch.RequiresMessageQueue
 import akka.dispatch.BoundedMessageQueueSemantics
 import com.typesafe.config.{Config, ConfigFactory}
@@ -58,9 +58,17 @@ object CarbonInflux extends App with Logging {
                             reportingActor, FlushToInflux)
   system.scheduler.schedule(30 seconds, 30 seconds, reportingActor, LogMetrics)
 
+  // Spin up CarbonTee actor if so configured
+  val teeActor: Option[ActorRef] =
+    if (config.getBoolean("carbon-tee")) Some(system.actorOf(CarbonTee.props(config)))
+    else                                 None
+
   while (true) {
     withCarbonStream(server) { (lines, host) =>
-      lines.foreach { line => reportingActor ! CarbonLine(line, host) }
+      lines.foreach { line =>
+        reportingActor ! CarbonLine(line, host)
+        teeActor.foreach(_ ! line)
+      }
     }
   }
 
