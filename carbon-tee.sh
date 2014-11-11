@@ -1,4 +1,5 @@
 #!/bin/bash
+# NOTE: this script is pretty flaky.  Please use the built-in tee capability in CarbonInflux.
 
 if [ $# != 5 ]
 then
