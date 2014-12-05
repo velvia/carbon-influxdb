@@ -4,7 +4,7 @@ import akka.actor.{Actor, Props}
 import akka.dispatch.RequiresMessageQueue
 import akka.dispatch.BoundedMessageQueueSemantics
 import com.typesafe.config.Config
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.StrictLogging
 import java.io.PrintWriter
 
 object CarbonTee {
@@ -20,7 +20,7 @@ object CarbonTee {
  * explicitly.  We handle that by throwing our own exception, and the default Actor supervision
  * will restart this actor, which sets up a new socket.
  */
-class CarbonTee(config: Config) extends Actor with Logging
+class CarbonTee(config: Config) extends Actor with StrictLogging
 with RequiresMessageQueue[BoundedMessageQueueSemantics] {
   val teeCarbonHost = config.getString("tee-carbon-host")
   val teeCarbonPort = config.getInt("tee-carbon-port")

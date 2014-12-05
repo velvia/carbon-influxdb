@@ -1,7 +1,7 @@
 package org.velvia
 
 import com.typesafe.config.Config
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.StrictLogging
 import com.rojoma.json.v3.ast.JValue
 import com.rojoma.json.v3.codec.JsonEncode
 import com.rojoma.json.v3.interpolation._
@@ -40,7 +40,7 @@ object InfluxReporter {
  *   read-timeout = 3000ms
  * }}}
  */
-class InfluxReporter(config: Config) extends Logging {
+class InfluxReporter(config: Config) extends StrictLogging {
   import InfluxReporter._
 
   val hostPort = config.getString("influx.host") + ":" + config.getInt("influx.port")

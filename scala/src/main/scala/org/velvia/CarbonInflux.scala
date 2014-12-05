@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorRef, ActorSystem, Props}
 import akka.dispatch.RequiresMessageQueue
 import akka.dispatch.BoundedMessageQueueSemantics
 import com.typesafe.config.{Config, ConfigFactory}
-import com.typesafe.scalalogging.slf4j.Logging
+import com.typesafe.scalalogging.StrictLogging
 import java.net.ServerSocket
 import scala.concurrent.duration._
 import scala.io.Source
@@ -36,7 +36,7 @@ with RequiresMessageQueue[BoundedMessageQueueSemantics] {
  * It takes one argument, the path to a config file, which is mandatory for configuring
  * the Influx instance to write to.
  */
-object CarbonInflux extends App with Logging {
+object CarbonInflux extends App with StrictLogging {
   if (args.length != 1) {
     println("This app takes one arg, the path to a config file.")
     sys.exit(0)
